@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flexible Multi-Entry Interest Calculator</title>
+  <style>
+    /* Reset some default styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 720px;
+      margin: 30px auto;
+      background-color: #f5f7fa;
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      color: #333;
+      line-height: 1.5;
+    }
+
+    h2 {
+      text-align: center;
+      color: #0077cc;
+      margin-bottom: 30px;
+      font-weight: 700;
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+      color: #444;
+    }
+
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1.8px solid #ccc;
+      transition: border-color 0.3s ease;
+    }
+    input[type="number"]:focus,
+    input[type="date"]:focus {
+      border-color: #0077cc;
+      outline: none;
+      box-shadow: 0 0 8px rgba(0, 119, 204, 0.3);
+    }
+
+    input#interestRate {
+      max-width: 150px;
+      display: block;
+      margin-bottom: 30px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .section {
+      background: white;
+      padding: 20px 25px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.07);
+    }
+
+    .section h3 {
+      margin-bottom: 18px;
+      color: #0366d6;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      border-bottom: 2px solid #e7f1ff;
+      padding-bottom: 8px;
+    }
+
+    .entry-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 60px;
+      column-gap: 20px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .entry-row label {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    button.add-btn {
+      display: inline-block;
+      margin-top: 10px;
+      background-color: #0077cc;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+      font-weight: 700;
+      box-shadow: 0 4px 10px rgba(0, 119, 204, 0.3);
+    }
+    button.add-btn:hover {
+      background-color: #005fa3;
+      box-shadow: 0 6px 12px rgba(0, 95, 163, 0.45);
+    }
+
+    button.remove-btn {
+      background: #f44336;
+      border: none;
+      color: white;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: background-color 0.25s ease;
+      box-shadow: 0 3px 8px rgba(244, 67, 54, 0.4);
+      user-select: none;
+    }
+    button.remove-btn:hover {
+      background: #c62828;
+      box-shadow: 0 4px 10px rgba(198, 40, 40, 0.55);
+    }
+
+    button#calculateBtn {
+      width: 100%;
+      background-color: #28a745;
+      padding: 14px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+    }
+    button#calculateBtn:hover {
+      background-color: #1e7e34;
+      box-shadow: 0 8px 18px rgba(30, 126, 52, 0.6);
+    }
+
+    #result {
+      white-space: pre-wrap;
+      background-color: #eef6ff;
+      border: 1.8px solid #b6d4fe;
+      border-radius: 10px;
+      padding: 25px 20px;
+      /* font-family: 'Courier New', Courier, monospace; */
+      font-size: 1rem;
+      color: #003366;
+      margin-top: 30px;
+      min-height: 120px;
+      box-shadow: inset 0 0 8px rgba(0, 102, 204, 0.1);
+    }
+
+    /* Responsive for mobile */
+    @media (max-width: 600px) {
+      .entry-row {
+        grid-template-columns: 1fr;
+      }
+      button.remove-btn {
+        margin-top: 12px;
+        width: 100%;
+      }
+      input#interestRate {
+        max-width: 100%;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <h2>Multi-Entry Interest Calculator</h2>
+
+  <label for="interestRate">Interest Rate (% per annum):</label>
+  <input type="number" id="interestRate" min="0" step="0.01" placeholder="E.g. 10.5" />
+
+  <div class="section">
+    <h3>Amount Taken Entries (Loans Disbursed)</h3>
+    <div id="amountTakenContainer">
+      <!-- Entries added here -->
+    </div>
+    <button class="add-btn" onclick="addAmountTakenEntry()">+ Add Amount Taken</button>
+  </div>
+
+  <div class="section">
+    <h3>Amount Given Entries (Repayments)</h3>
+    <div id="amountGivenContainer">
+      <!-- Entries added here -->
+    </div>
+    <button class="add-btn" onclick="addAmountGivenEntry()">+ Add Amount Given</button>
+  </div>
+
+  <button id="calculateBtn" onclick="calculateInterest()">Calculate Interest</button>
+
+  <h3>Result:</h3>
+  <div id="result"></div>
+
+  <script>
+    // Add one initial row each on load:
+    window.onload = () => {
+      if (document.getElementById('amountTakenContainer').children.length === 0) {
+        addAmountTakenEntry();
+      }
+      if (document.getElementById('amountGivenContainer').children.length === 0) {
+        addAmountGivenEntry();
+      }
+    };
+
+    function addAmountTakenEntry() {
+      const container = document.getElementById('amountTakenContainer');
+      const div = document.createElement('div');
+      div.className = 'entry-row';
+
+      div.innerHTML = `
+        <div class="input-group">
+          <label>Amount Taken (₹)</label>
+          <input type="number" min="0" step="0.01" class="amountTaken" placeholder="Enter amount taken" />
+        </div>
+        <div class="input-group">
+          <label>Date Taken</label>
+          <input type="date" class="dateTaken" />
+        </div>
+        <button class="remove-btn" onclick="removeEntry(this)" title="Remove Entry">&times;</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function addAmountGivenEntry() {
+      const container = document.getElementById('amountGivenContainer');
+      const div = document.createElement('div');
+      div.className = 'entry-row';
+
+      div.innerHTML = `
+        <div class="input-group">
+          <label>Amount Given (₹)</label>
+          <input type="number" min="0" step="0.01" class="amountGiven" placeholder="Enter amount given" />
+        </div>
+        <div class="input-group">
+          <label>Date Given</label>
+          <input type="date" class="dateGiven" />
+        </div>
+        <button class="remove-btn" onclick="removeEntry(this)" title="Remove Entry">&times;</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function removeEntry(button) {
+      const parent = button.parentElement;
+      parent.remove();
+    }
+
+    function calculateInterest() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerText = '';
+
+      const interestRateInput = document.getElementById('interestRate').value;
+      const interestRate = parseFloat(interestRateInput);
+      if (isNaN(interestRate) || interestRate < 0) {
+        alert('Please enter a valid interest rate.');
+        return;
+      }
+
+      // Gather Taken Entries
+      const takenEls = document.querySelectorAll('#amountTakenContainer .entry-row');
+      const takenEntries = [];
+      for (const el of takenEls) {
+        const amtVal = el.querySelector('.amountTaken').value.trim();
+        const dateVal = el.querySelector('.dateTaken').value.trim();
+        if (!amtVal || !dateVal) {
+          alert('Fill all Amount Taken entries.');
+          return;
+        }
+        const amt = parseFloat(amtVal);
+        if (amt <= 0) {
+          alert('Amount Taken must be positive.');
+          return;
+        }
+        const date = new Date(dateVal);
+        if (isNaN(date)) {
+          alert('Invalid date in Amount Taken.');
+          return;
+        }
+        takenEntries.push({ amount: amt, date: date });
+      }
+
+      // Gather Given Entries
+      const givenEls = document.querySelectorAll('#amountGivenContainer .entry-row');
+      const givenEntries = [];
+      for (const el of givenEls) {
+        const amtVal = el.querySelector('.amountGiven').value.trim();
+        const dateVal = el.querySelector('.dateGiven').value.trim();
+        if (!amtVal || !dateVal) {
+          alert('Fill all Amount Given entries.');
+          return;
+        }
+        const amt = parseFloat(amtVal);
+        if (amt <= 0) {
+          alert('Amount Given must be positive.');
+          return;
+        }
+        const date = new Date(dateVal);
+        if (isNaN(date)) {
+          alert('Invalid date in Amount Given.');
+          return;
+        }
+        givenEntries.push({ amount: amt, date: date });
+      }
+
+      // Combine events
+      const events = [];
+      takenEntries.forEach(e => events.push({ date: e.date, amount: +e.amount, type: 'taken' }));
+      givenEntries.forEach(e => events.push({ date: e.date, amount: -e.amount, type: 'given' }));
+
+      if (events.length === 0) {
+        alert('Please enter at least one Amount Taken or Amount Given entry.');
+        return;
+      }
+
+      // Sort events by date ascending
+      events.sort((a, b) => a.date - b.date);
+
+      // Calculate interest over periods between events
+      let principal = 0;
+      let totalInterest = 0;
+      const msInDay = 1000 * 60 * 60 * 24;
+      const interestLog = [];
+
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i];
+
+        if (i === 0) {
+          principal += event.amount;
+          if (principal < 0) principal = 0;
+          continue;
+        }
+
+        const prevEvent = events[i - 1];
+        const days = Math.round((event.date - prevEvent.date) / msInDay);
+        if (days < 0) {
+          alert('Events out of order by date.');
+          return;
+        }
+
+        if (days > 0 && principal > 0) {
+          const interestPeriod = (principal * interestRate * days) / (360 * 100);
+          totalInterest += interestPeriod;
+          interestLog.push(
+            `From ${prevEvent.date.toLocaleDateString()} to ${event.date.toLocaleDateString()} (${days} days) on principal ₹${principal.toFixed(2)} → Interest: ₹${interestPeriod.toFixed(2)}`
+          );
+        }
+
+        principal += event.amount;
+        if (principal < 0) principal = 0;
+      }
+
+      // Interest from last event to today
+      const lastEvent = events[events.length - 1];
+      const today = new Date();
+      const daysSinceLast = Math.round((today - lastEvent.date) / msInDay);
+      if (daysSinceLast > 0 && principal > 0) {
+        const interestPeriod = (principal * interestRate * daysSinceLast) / (360 * 100);
+        totalInterest += interestPeriod;
+        interestLog.push(
+          `From ${lastEvent.date.toLocaleDateString()} to ${today.toLocaleDateString()} (${daysSinceLast} days) on principal ₹${principal.toFixed(2)} → Interest: ₹${interestPeriod.toFixed(2)}`
+        );
+      }
+
+      // Summary
+      const totalTaken = takenEntries.reduce((sum, e) => sum + e.amount, 0);
+      const totalGiven = givenEntries.reduce((sum, e) => sum + e.amount, 0);
+      const balancePrincipal = totalTaken - totalGiven;
+
+      let finalMessage = `Total Amount Taken: ₹${totalTaken.toFixed(2)}\n`;
+      finalMessage += `Total Amount Given (Repayments): ₹${totalGiven.toFixed(2)}\n`;
+      finalMessage += `Outstanding Principal: ₹${balancePrincipal > 0 ? balancePrincipal.toFixed(2) : '0.00'}\n\n`;
+      finalMessage += `Interest Rate: ${interestRate.toFixed(2)}% p.a.\n\n`;
+      finalMessage += `Interest Per Period:\n`;
+      finalMessage += interestLog.join('\n') + '\n\n';
+      finalMessage += `Total Interest Accrued: ₹${totalInterest.toFixed(2)}\n`;
+
+      resultDiv.innerText = finalMessage;
+      resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+
+</body>
+</html>
