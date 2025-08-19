@@ -264,6 +264,22 @@
       parent.remove();
     }
 
+    function diffDays360(startDate, endDate) {
+  // Using the US (NASD) 30/360 day count convention
+  
+  let d1 = startDate.getDate();
+  let d2 = endDate.getDate();
+  let m1 = startDate.getMonth() + 1;
+  let m2 = endDate.getMonth() + 1;
+  let y1 = startDate.getFullYear();
+  let y2 = endDate.getFullYear();
+
+  if (d1 === 31) d1 = 30;
+  if (d2 === 31 && d1 === 30) d2 = 30;
+
+  return (360 * (y2 - y1)) + (30 * (m2 - m1)) + (d2 - d1);
+}
+
     function calculateInterest() {
       const resultDiv = document.getElementById('result');
       resultDiv.innerText = '';
@@ -350,7 +366,7 @@
         }
 
         const prevEvent = events[i - 1];
-        const days = Math.round((event.date - prevEvent.date) / msInDay);
+        const days = diffDays360(prevEvent.date, event.date);
         if (days < 0) {
           alert('Events out of order by date.');
           return;
@@ -371,7 +387,7 @@
       // Interest from last event to today
       const lastEvent = events[events.length - 1];
       const today = new Date();
-      const daysSinceLast = Math.round((today - lastEvent.date) / msInDay);
+      const daysSinceLast = diffDays360(lastEvent.date, today);
       if (daysSinceLast > 0 && principal > 0) {
         const interestPeriod = (principal * interestRate * daysSinceLast) / (360 * 100);
         totalInterest += interestPeriod;
